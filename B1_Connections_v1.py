@@ -5,6 +5,7 @@ from functools import partial  # To prevent unwanted windows
 
 # Functions go here
 def get_items():
+    
     # Retrieve words from csv file and put them in a list
     file = open("03_Connections/Csv/connections_quiz.csv", "r")
     all_items = list(csv.reader(file, delimiter=","))
@@ -16,6 +17,9 @@ def get_items():
     return all_items
 
 def get_results():
+
+    all_items_list = get_items()
+
     # Create lists to append items into
     all_results = []
     all_words = []
@@ -23,9 +27,9 @@ def get_results():
     answer = []
     clue = []
 
-    # loop until we have four colours with different scores
+    # loop until we have 3 different groups of items which arent duplicates
     while len(all_results) < 3:
-        potential_items = random.choice(all_items)
+        potential_items = random.choice(all_items_list)
 
         # Get the score and check its not a duplicate
         if potential_items[5] not in answer:
@@ -37,6 +41,8 @@ def get_results():
             all_words.append(potential_items[4])
             answer.append(potential_items[5])
             clue.append(potential_items[6])
+
+    return all_results, before_after, all_words, answer, clue
 
 # Classes start here
 class StartGame:
@@ -97,17 +103,38 @@ class StartGame:
         Checks user have entered 1 or more rounds
         """
 
-        # Retrieve temperature to be converted
-        rounds_wanted = 5
-        self.to_play(rounds_wanted)
+        # Retrieve number of rounds the user wants to play
+        rounds_wanted = self.num_rounds_entry.get()
 
-    def to_play(self, num_rounds):
-        """
-        Invokes Game GUI and takes across number of rounds to be played
-        """
-        Play(num_rounds)
-        # Hide root window (hide rounds choice window)
-        root.withdraw()
+        # Reset label and entry box (for when users come to home screen)
+        self.choose_label.config(fg="#009900", font=("Arial", "12", "bold"))
+        self.num_rounds_entry.config(bg="#FFFFFF")
+
+        error = "Oops - please choose a whole number more than 0"
+        has_errors = "no"
+
+        # checks that amount to be converted is a number above absolute zero
+        try:
+            rounds_wanted = int(rounds_wanted)
+            if rounds_wanted > 0:
+                # Invoke Play Class (and take across number of rounds)
+                Play(rounds_wanted)
+                # Hide root window (ie: hide rounds choice window)
+                root.withdraw()
+
+            else:
+                has_errors = "yes"
+        
+        except ValueError:
+            has_errors = "yes"
+        
+        # display the error if necessary
+        if has_errors == "yes":
+            self.choose_label.config(text=error, fg="#990000",
+                                     font=("Arial", "10", "bold"))
+            self.num_rounds_entry.config(bg="#F4CCCC")
+            self.num_rounds_entry.delete(0, END)
+
 
 class Play:
     """
@@ -120,14 +147,25 @@ class Play:
         self.game_frame = Frame(self.play_box)
         self.game_frame.grid(padx=10, pady=10)
 
-        self.heading_label = Label(self.game_frame, text="Connections", font=("Arial", "16", "bold"),
-                                   padx=5, pady=5)
-        self.heading_label.grid(row=0)
+        self.game_heading_label = Label(self.game_frame, text= f"Round () of {how_many}",
+                                        font=("Arial", "16", "bold"), padx=5, pady=5)
+        self.game_heading_label.grid(row=0)
 
         self.hints_button = Button(self.game_frame, font=("Arial", "14", "bold"),
                                    text="Hints", width=15, fg="#FFFFFF",
                                    bg="#FF8000", padx=10, pady=10, command=self.to_hints)
         self.hints_button.grid(row=1)
+
+        self.end_game_button = Button(self.game_frame, text="End Game",
+                                      font=("Arial", "16", "bold"),
+                                      fg="#FFFFFF", bg="#990000", width="10",
+                                      command=self.close_play)
+        self.end_game_button.grid(row=2)
+
+    def close_play(self):
+        # reshow root (ie: choose rounds) and end current game / allow new game to start
+        root.deiconify()
+        self.play_box.destroy()
 
     def to_hints(self):
         """
@@ -145,7 +183,6 @@ class DisplayHints:
     def __init__(self, partner):
         
         # setup dialouge box and background colour
-        background = "#ffe6cc"
         self.hint_box = Toplevel()
 
         # disable hint button
@@ -185,7 +222,6 @@ class DisplayHints:
     def close_hint(self, partner):
         partner.hints_button.config(state=NORMAL)
         self.hint_box.destroy()
-
 
 
 

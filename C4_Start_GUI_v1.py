@@ -22,7 +22,7 @@ class StartGame:
 
         # list of labels to be made (text | font | fg)
         start_labels_list = [
-            ["Colour quest", ("Arial", "16", "bold"), None],
+            ["Connections", ("Arial", "16", "bold"), None],
             [intro_string, ("Arial", "12"), None],
             [choose_string, ("Arial", "12", "bold"), "#009900"]
         ]
@@ -119,6 +119,6 @@ class Play:
 # main routine
 if __name__ == "__main__":
     root = Tk()
-    root.title("Colour Quest")
+    root.title("Conections")
     StartGame()
     root.mainloop()

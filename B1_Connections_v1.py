@@ -174,7 +174,7 @@ class Play:
         """
         DisplayHints(self)
 
-
+# Hint and stat classes
 class DisplayHints:
     """
     Displays hints for Connections game
@@ -229,4 +229,5 @@ class DisplayHints:
 if __name__ == "__main__":
     root = Tk()
     root.title("Connections")
+    StartGame()
     root.mainloop()

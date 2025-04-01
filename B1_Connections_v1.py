@@ -142,12 +142,16 @@ class Play:
     """
 
     def __init__(self, how_many):
+        
         self.play_box = Toplevel()
 
         self.game_frame = Frame(self.play_box)
         self.game_frame.grid(padx=10, pady=10)
 
-        self.game_heading_label = Label(self.game_frame, text= f"Round () of {how_many}",
+        # If users press the 'x' on the game window, end the entire game
+        self.play_box.protocol('WM_DELETE_WINDOW', root.destroy)
+
+        self.game_heading_label = Label(self.game_frame, text= f"Round 1 of {how_many}",
                                         font=("Arial", "16", "bold"), padx=5, pady=5)
         self.game_heading_label.grid(row=0)
 
@@ -157,10 +161,26 @@ class Play:
         self.hints_button.grid(row=1)
 
         self.end_game_button = Button(self.game_frame, text="End Game",
-                                      font=("Arial", "16", "bold"),
+                                      font=("Arial", "16", "bold"), padx=20, pady=10,
                                       fg="#FFFFFF", bg="#990000", width="10",
                                       command=self.close_play)
         self.end_game_button.grid(row=2)
+
+    def new_round(self):
+        """
+        Chooses four colours, works out median for score to beat. 
+        configures buttons with choosen colours
+        """
+
+        # reteieve number of rounds played, add one to it and configure heading
+        # rounds_played = self.rounds_played.get()
+        # self.rounds_played.set(rounds_played)
+
+        # Update heading and score to beat labels. Hide results label
+        # self.heading_label.config(text=f"Round {rounds_played + 1} of {rounds_wanted}")
+        # self.results_label.config(text=f"{'=' * 7}", bg="#F0F0F0")
+            
+        # self.next_button.config(state=DISABLED)
 
     def close_play(self):
         # reshow root (ie: choose rounds) and end current game / allow new game to start

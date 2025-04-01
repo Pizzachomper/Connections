@@ -133,13 +133,13 @@ class Play:
         self.word_button_ref = []
         self.button_words_list = []
 
-        # Create 4 buttons in a 2 by 2 grid
-        for item in range(0, 4):
+        # Create 12 buttons in a 4 by 3 grid
+        for item in range(0, 12):
             self.word_button = Button(self.word_frame, font=body_font,
                                         text="Word Name", width=15,
                                         command=partial(self.round_results, item))
-            self.word_button.grid(row=item // 2,
-                                    column=item % 2,
+            self.word_button.grid(row=item // 4,
+                                    column=item % 4,
                                     padx=5, pady=5)
             
             self.word_button_ref.append(self.word_button)
@@ -187,53 +187,47 @@ class Play:
 
         rounds_wanted = self.rounds_wanted.get()
 
-        # get round colours and median score
-        self.round_colour_list, median = get_items()
-
-        self.target_score.set(median)
-
         # Update heading and score to beat labels. Hide results label
         self.heading_label.config(text=f"Round {rounds_played} of {rounds_wanted}")
-        self.target_label.config(text=f"Target score: {median}", font=("Arial", "14", "bold"))
+        self.target_label.config(text=f"Target score: 10", font=("Arial", "14", "bold"))
         self.results_label.config(text=f"{'=' * 7}", bg="#F0F0F0")
 
-        # Configure buttons using foreground and background colours from list
-        # Enable colour buttons
-        for count, item in enumerate(self.colour_button_ref):
-            item.config(fg=self.round_colour_list[count][2], 
-                        bg=self.round_colour_list[count][0],
-                        text=self.round_colour_list[count][0], state=NORMAL)
+        # Configure buttons using foreground and background words from list
+        # Enable words buttons
+        for count, item in enumerate(self.word_button_ref):
+            item.config(fg=self.round_word_list[count][2], 
+                        bg=self.round_word_list[count][0],
+                        text=self.round_word_list[count][0], state=NORMAL)
             
         self.next_button.config(state=DISABLED)
 
     def round_results(self, user_choice):
         """
-        Retrieves which button was pushed (index 0 - 3), retrieves score
-        and then compares it with median, updates results and add results to stat list.
+        Retrieves which button was pushed (index 0 - 11), retrieves score
+        and then compares it with target score, updates results and add results to stat list.
         """
-        # Get user score and colour based on button press
-        score = int(self.round_colour_list[user_choice][1])
+        # Get user score and word based on button press
+        score = int(self.round_word_list[user_choice][1])
 
         # alternate way to get button name. Good for if buttons have been scrambled
-        colour_name = self.colour_button_ref[user_choice].cget('text')
+        word_name = self.word_button_ref[user_choice].cget('text')
 
         # Retrieve target score and compare with user score to find round result
-        target = self.target_score.get()
-        self.all_medians_list.append(target)
+        target = 10
 
         if score >= target:
-            result_text = f"Success! {colour_name} earned you {score} points"
+            result_text = f"Success! {word_name} earned you {score} points"
             result_bg = "#82B366"
             self.all_scores_list.append(score)
 
         else:
-            result_text = f"Oops {colour_name} ({score}) is less than the target"
+            result_text = f"Oops {word_name} ({score}) is less than the target"
             result_bg = "#F8CECC"
             self.all_scores_list.append(0)
 
         self.results_label.config(text=result_text, bg=result_bg)
 
-        # Enable stats and next buttons, disable colour buttons
+        # Enable stats and next buttons, disable word buttons
         self.next_button.config(state=NORMAL)
         self.stats_button.config(state=NORMAL)
 
@@ -245,7 +239,7 @@ class Play:
             self.next_button.config(state=DISABLED, text="Game Over")
             self.end_game_button.config(text="Play Again", bg="#006600")
 
-        for item in self.colour_button_ref:
+        for item in self.word_button_ref:
             item.config(state=DISABLED)
 
 

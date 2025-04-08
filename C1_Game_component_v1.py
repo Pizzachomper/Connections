@@ -70,17 +70,17 @@ class Play:
         self.group_frame = Frame(self.game_frame)
         self.group_frame.grid(row=3)
 
-        # Create 3 group button
-        for item in range(0, 2):
+        # Create 3 group buttons
+        for item in range(0, 3):
             self.group_button = Button(self.group_frame, font=body_font,
-                                       text="Group Name", width=18)
-            self.group_frame.grid(row= item // 3, column=item % 3, padx=5, pady=5)
+                                       text="Group Name", width=21)
+            self.group_button.grid(row= item // 3, column=item % 3, padx=5, pady=5)
 
         # set up word buttons
         self.word_frame = Frame(self.game_frame)
         self.word_frame.grid(row=4)
 
-        # Create 12 buttons in a 4 by 3 grid
+        # # Create 12 buttons in a 4 by 3 grid
         for item in range(0, 12):
             self.word_button = Button(self.word_frame, font=body_font,
                                       text="Word Name", width=15)

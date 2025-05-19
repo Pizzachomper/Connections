@@ -5,7 +5,11 @@ from functools import partial  # To prevent unwanted windows
 
 # Functions go here
 def get_items():
-    
+    """
+    Retrieves items from csv file in CSV folder in project folder
+    Return: list of results where each list item has the correct name.
+    """
+
     # Retrieve words from csv file and put them in a list
     file = open("03_Connections/Csv/connections_quiz.csv", "r")
     all_items = list(csv.reader(file, delimiter=","))
@@ -16,14 +20,14 @@ def get_items():
 
     return all_items
 
-def get_results():
+def get_round_results():
 
     all_items_list = get_items()
 
     # Create lists to append items into
     all_results = []
-    all_words = []
-    before_after = []
+    round_words = []
+    round_before_after = []
     answer = []
     clue = []
 
@@ -31,18 +35,18 @@ def get_results():
     while len(all_results) < 3:
         potential_items = random.choice(all_items_list)
 
-        # Get the score and check its not a duplicate
+        # Get the connections and check its not a duplicate question in a previous round
         if potential_items[5] not in answer:
             all_results.append(potential_items)
-            before_after.append(potential_items[0])
-            all_words.append(potential_items[1])
-            all_words.append(potential_items[2])
-            all_words.append(potential_items[3])
-            all_words.append(potential_items[4])
+            round_before_after.append(potential_items[0])
+            round_words.append(potential_items[1])
+            round_words.append(potential_items[2])
+            round_words.append(potential_items[3])
+            round_words.append(potential_items[4])
             answer.append(potential_items[5])
             clue.append(potential_items[6])
 
-    return all_results, before_after, all_words, answer, clue
+    return all_results, round_before_after, round_words, answer, clue
 
 # Classes start here
 class StartGame:
@@ -73,7 +77,6 @@ class StartGame:
         ]
 
         # Create labels and them to the refrence list
-
         start_label_ref = []
         for count, item in enumerate(start_labels_list):
             make_label = Label(self.start_frame, text=item[0], font=item[1],
@@ -101,6 +104,10 @@ class StartGame:
         self.play_button.grid(row=0, column=1, padx=20, pady=20)
 
     def check_rounds(self):
+        """
+        Checks users have entered 1 or more rounds
+        """
+
         # Retrieve number of rounds the user wants to play
         rounds_wanted = self.num_rounds_entry.get()
 
@@ -146,6 +153,8 @@ class Play:
 
     def __init__(self, how_many):
         
+        # String variable
+
         # Rounds played - start with 0
         self.rounds_played = IntVar()
         self.rounds_played.set(0)
@@ -153,19 +162,28 @@ class Play:
         self.rounds_wanted = IntVar()
         self.rounds_wanted.set(how_many)
 
+        self.rounds_won = IntVar()
+
+        # Word and group lists for the round
+        self.round_word_list = []
+        self.round_group_list = []
+        self.all_scores_list = []
+
         self.play_box = Toplevel()
 
         self.game_frame = Frame(self.play_box)
         self.game_frame.grid(padx=10, pady=10)
+
+        # If users press the 'x' on the game window, end the entire game
+        self.play_box.protocol('WM_DELETE_WINDOW', root.destroy)
 
         # body font for most labels
         body_font = ("Arial", "12")
 
         # List for label details (text | font | background | row)
         play_labels_list = [
-            ["Score to beat: #", body_font, "#FFF2CC", 1],
+            ["Round # of #", ("Arial", "16", "bold"), None, 0],
             ["Groups will appear after you click 4 words. Good luck", body_font, "#D5E8D4", 2],
-            ["Choose a word below.", body_font, "#D5E8D4", 3],
             ["You chose, result", body_font, "#D5E8D4", 5]
         ]
 
@@ -174,35 +192,41 @@ class Play:
             self.make_label = Label(self.game_frame, text=item[0], font=item[1],
                                     bg=item[2], wraplength=300, justify="left")
             self.make_label.grid(row=item[3], pady=10, padx=10)
-            play_labels_ref.append(item)
+            play_labels_ref.append(self.make_label)
 
         # Retrieve Labels so they can be configured later
         self.heading_label = play_labels_ref[0]
-        self.target_label = play_labels_ref[1]
-        self.group_label = play_labels_ref[2]
-        self.word_label = play_labels_ref[3]
-        self.results_label = play_labels_ref[4]
+        self.group_label = play_labels_ref[1]
+        self.results_label = play_labels_ref[2]
 
         # Set up group buttons
         self.group_frame = Frame(self.game_frame)
         self.group_frame.grid(row=3)
 
-        # Create 3 group buttons
+        self.group_button_ref = []
+
+        # Create 3 group buttons in a 3 by 1 grid and append them to be updated in the new round function
         for item in range(0, 3):
             self.group_button = Button(self.group_frame, font=body_font,
-                                       text="Group Name", width=21)
+                                       text="Group button", width=21)
             self.group_button.grid(row= item // 3, column=item % 3, padx=5, pady=5)
+
+            self.group_button_ref.append(self.group_button)
 
         # set up word buttons
         self.word_frame = Frame(self.game_frame)
         self.word_frame.grid(row=4)
 
-        # # Create 12 buttons in a 4 by 3 grid
+        self.word_button_ref = []
+
+        # # Create 12 word buttons in a 4 by 3 grid
         for item in range(0, 12):
             self.word_button = Button(self.word_frame, font=body_font,
-                                      text="Word Name", width=15)
+                                      text="Word button", width=15)
             
             self.word_button.grid(row=item // 4, column=item % 4, padx=5, pady=5)
+
+            self.word_button_ref.append(self.word_button)
 
         # Frame to hold hints and stats buttons
         self.hints_stats_frame = Frame(self.game_frame)
@@ -228,45 +252,109 @@ class Play:
 
         # Retrieve next, stats and end button so that they can be configured
         self.next_button = control_ref_list[0]
+        self.hints_button = control_ref_list[1]
         self.stats_button = control_ref_list[2]
         self.end_game_button = control_ref_list[3]
+
+        self.stats_button.config(state=DISABLED)
+
+        # End game button
+        self.end_game_button.config(text="End Game")
 
         # Once interface has been created, invoke new round function for the first round
         self.new_round()
 
+        return self.group_button
+
+    def hide_me(self, event):
+        print("hide (test)")
+        event.widget.place_forget()
+
     def new_round(self):
         """ 
-        Configures buttons, and creates a new round
+        Chooses 12 words and 3 groups. Configures buttons, and creates a new round
         """
 
         # reteieve number of rounds played, add one to it and configure heading
         rounds_played = self.rounds_played.get()
-        rounds_played += 1
         self.rounds_played.set(rounds_played)
 
         rounds_wanted = self.rounds_wanted.get()
 
-        # Update heading and score to beat labels. Hide results label
-        self.heading_label.config(text=f"Round {rounds_played} of {rounds_wanted}")
-        self.results_label.config(text=f"{'=' * 7}", bg="#F0F0F0")
-            
+        # Get round and group words
+        self.round_word_list, self.round_group_list, self.answers = get_round_results()
+
+        # Set 3 targets as answer (group buttons)
+        self.target_1 = self.answers[0]
+        self.target_2 = self.answers[1]
+        self.target_3 = self.answers[2]
+
+        # Update heading labels. Hide results label
+        self.heading_label.config(text=f"Round {rounds_played + 1} of {rounds_wanted}")
+
+        self.group_button = self.hide_me()
+
+        # Configure buttons using text from list
+        # Enable word and group buttons
+        for count, item in enumerate(self.group_button_ref):
+            item.config(text=self.round_group_list[count][0], state=NORMAL)
+
+        for count, item in enumerate(self.word_button_ref):
+            item.config(text=self.round_word_list[count][0], state=NORMAL)
+        
         self.next_button.config(state=DISABLED)
 
     def round_results(self):
         """
         Retrieves which button was pushed (index 0 - 3), retrieves score
-        and then compares it with the target, updates results and add results to stat list.
+        and then compares it with median, updates results and add results to stat list.
         """
 
-        # Enable stats and next buttons, disables word and group buttons
+        # Add one to the number of rounds played and retrieve the number of rounds won
+        rounds_played = self.rounds_played.get()
+        rounds_played += 1
+        self.rounds_played.set(rounds_played)
+
+        rounds_won = self.rounds_won.get()
+
+        # Retrieve target score and compare with user score to find round result
+        target = self.target_score.get()
+
+        if self.answers >= target:
+            result_text = f"Success! {self.answers} earned you (Placeholder: 10) points"
+            result_bg = "#82B366"
+            self.all_scores_list.append(10)
+
+            rounds_won = self.rounds_won.get()
+            rounds_won += 1
+            self.rounds_won.set(rounds_won)
+
+        else:
+            result_text = f"Oops {self.answers} is not the same group"
+            result_bg = "#F8CECC"
+            self.all_scores_list.append(0)
+
+        self.results_label.config(text=result_text, bg=result_bg)
+
+        print("all scores:", self.all_scores_list)
+
+        # Enable next button, disable word and group buttons
         self.next_button.config(state=NORMAL)
-        self.stats_button.config(state=NORMAL)
 
         # Check to see if game is over
-        rounds_played = self.rounds_played.get()
         rounds_wanted = self.rounds_wanted.get()
 
+        # Code for when the game ends!
         if rounds_played == rounds_wanted:
+
+            # Work out the success rate
+            success_rate = rounds_won / rounds_played * 100
+            success_string = (f"Success rate: {rounds_won} / {rounds_played} ({success_rate:.0f}%)")
+
+            # Configure end game labels / buttons
+            self.heading_label.config(text="Game Over")
+            self.target_label.config(text=success_string)
+
             self.next_button.config(state=DISABLED, text="Game Over")
             self.end_game_button.config(text="Play Again", bg="#006600")
 

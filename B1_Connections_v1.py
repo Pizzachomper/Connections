@@ -45,6 +45,7 @@ def get_round_results():
 
     return round_before_after, round_words, round_answer, round_clue
 
+
 # Classes start here
 class StartGame:
     """
@@ -267,6 +268,10 @@ class Play:
 
         rounds_wanted = self.rounds_wanted.get()
 
+        # Create basic scoring method and append to high score list
+        highest = 10
+        self.all_high_score_list.append(highest)
+
         # get round lists 
         self.round_before_after_list, self.round_words_list, self.round_answer_list, self.round_clue_list = get_round_results()
 
@@ -311,11 +316,11 @@ class Play:
             round_before_after = self.round_before_after_list[3]
 
         # Update heading and score to beat labels. Hide results label
-        self.heading_label.config(text=f"Round {rounds_played} of {rounds_wanted}")
+        self.heading_label.config(text=f"Round {rounds_played + 1} of {rounds_wanted}")
         self.connection_label.config(text=f"Choose the correct answer below which is placed {round_before_after} these connections: {word1}, {word2}, {word3}, {word4}. Clue: {round_clue}")
         self.results_label.config(text=f"{'=' * 7}", bg="#F0F0F0")
 
-        # Configure buttons using foreground and background answers from list
+        # Configure buttons using text answers from list
         # Enable answer buttons
         for count, item in enumerate(self.answer_button_ref):
             item.config(text=self.round_answer_list[count], state=NORMAL)
@@ -339,21 +344,21 @@ class Play:
         answer_name = self.answer_button_ref[user_choice].cget('text')
 
         if answer_name == self.correct_answer:
-            result_text = f"Success! {answer_name} is correct, and earned you (placeholder: 10) points"
+            result_text = f"Success! {answer_name} is correct, and earned you 10 points"
             result_bg = "#82B366"
             self.all_scores_list.append(10)
 
             rounds_won = self.rounds_won.get()
             rounds_won += 1
             self.rounds_won.set(rounds_won)
-            self.combo += 1
+            # self.combo += 1
             
 
         else:
             result_text = f"Oops! {answer_name} is incorrect, and earned you no points. The correct answer was {self.correct_answer}"
             result_bg = "#F8CECC"
             self.all_scores_list.append(0)
-            self.combo = 0
+            # self.combo = 0
 
 
         self.results_label.config(text=result_text, bg=result_bg)
@@ -397,8 +402,8 @@ class Play:
         # IMPORTANT: retrieve number of rounds
         # won as a number (rather than the 'self' container)
         rounds_won = self.rounds_won.get()
-        highest_combo = self.highest_combo.get()
-        stats_bundle = [rounds_won, highest_combo, self.all_scores_list, self.all_high_score_list]
+        # highest_combo = self.highest_combo.get()
+        stats_bundle = [rounds_won, self.all_scores_list, self.all_high_score_list]
 
         Stats(self, stats_bundle)
         
@@ -477,9 +482,9 @@ class Stats:
         
         # Extract information from master list
         rounds_won = all_stats_info[0]
-        highest_combo = all_stats_info[1]
-        user_scores = all_stats_info[2]
-        high_scores = all_stats_info[3]
+        # highest_combo = all_stats_info[1]
+        user_scores = all_stats_info[1]
+        high_scores = all_stats_info[2]
 
         # Sort user scores to find high score
         user_scores.sort()
@@ -517,7 +522,7 @@ class Stats:
 
         # Custom comment text and formatting for score
         if total_score == max_possible:
-            comment_string = ("Amazing! You got the highest possible score and combo!")
+            comment_string = ("Amazing! You got the highest possible score")
             comment_colour = "#D5E8D4"
 
         elif total_score == 0:
@@ -530,7 +535,7 @@ class Stats:
             comment_colour = "#F0F0F0"
 
         average_score_string = f"Average score: {average_score:.0f}"
-        highest_combo_string = f"Highest combo: {highest_combo}\n"
+        # highest_combo_string = f"Highest combo: {highest_combo}\n"
 
 
         heading_font = ("Arial", "16", "bold")
@@ -546,8 +551,7 @@ class Stats:
             [comment_string, comment_font, "W"],
             ["\nRound Stats", heading_font, ""],
             [best_score_string, normal_font, "W"],
-            [average_score_string, normal_font, "W"],
-            [highest_combo_string, normal_font, "W"]
+            [average_score_string, normal_font, "W"]
         ]
 
         stats_label_ref_list = []

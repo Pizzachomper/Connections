@@ -14,8 +14,9 @@ class StartGame:
         self.start_frame.grid()
 
         # Strings for Labels
-        intro_string = "Each round you will be asked to choose 4 words which can group together.\n"\
-                       "The more groups you get correct the more points you earn.\n"\
+        intro_string = "Each round you will choose an answer which makes a connection with the 4 words given.\n"\
+                       "You will also get a clue if the words can be placed before or after the answer.\n"\
+                       "The more groups you get correct, the more points you earn.\n"\
 
         # Choose string = oops - please enter a whole number more than 0
         choose_string = "How many rounds do you want to play?"

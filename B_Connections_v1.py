@@ -2,7 +2,6 @@ import csv
 import random
 from tkinter import *
 from functools import partial  # To prevent unwanted windows
-import clue_constants as c
 
 # Functions go here
 def get_items():
@@ -72,18 +71,13 @@ class StartGame:
                         "The more groups you get correct one after the other, the larger the combo and the more points you earn."
 
         # Choose string = oops - please enter a whole number more than 0
-        choose_string = "Select clue settings and enter how many rounds do you want to play"
-
-        # Fonts used for starting interface
-        heading_font = ("Arial", "16", "bold")
-        subheading_font = ("Arial", "12", "bold")
-        body_font = ("Arial", "12")
+        choose_string = "How many rounds do you want to play?"
 
         # list of labels to be made (text | font | fg)
         start_labels_list = [
-            ["Connections", heading_font, None],
-            [intro_string, body_font, None],
-            [choose_string, subheading_font, "#009900"]
+            ["Connections", ("Arial", "16", "bold"), None],
+            [intro_string, ("Arial", "12"), None],
+            [choose_string, ("Arial", "12", "bold"), "#009900"]
         ]
 
         # Create labels and them to the refrence list
@@ -99,43 +93,29 @@ class StartGame:
         # Extract choice label so that it can be changed to an error message if necessary
         self.choose_label = start_label_ref[2]
 
-        # Frame so that entry box can be on a different row to buttons 
+        # Frame so that entry box and button can be in the same row
         self.entry_area_frame = Frame(self.start_frame)
         self.entry_area_frame.grid(row=3)
 
-        self.num_rounds_entry = Entry(self.entry_area_frame, font=("Arial", "20", "bold"), width=28, justify="center")
+        self.num_rounds_entry = Entry(self.entry_area_frame, font=("Arial", "20", "bold"),
+                                        width=10)
         self.num_rounds_entry.grid(row=0, column=0, padx=10, pady=10)
 
-        # Create Clue buttons 
-        self.clue_area_frame = Frame(self.start_frame)
-        self.clue_area_frame.grid(row=4)
 
-        self.clues_on_button = Button(self.clue_area_frame, font=heading_font,
-                                        fg="#FFFFFF", bg="#00D828", text="Play with clues", width=15, command= lambda: self.check_rounds(c.CLUES_ON))
-        
-        self.clues_on_button.grid(row=0, column=0, padx=10, pady=10)
-        
-        self.clues_off_button = Button(self.clue_area_frame, font=heading_font,
-                                        fg="#FFFFFF", bg="#D80000", text="Play without clues", width=15, command= lambda: self.check_rounds(c.CLUES_OFF))
-        
-        self.clues_off_button.grid(row=0, column=1, padx=10, pady=10)
+        # Create play button
+        self.play_button = Button(self.entry_area_frame, font=("Arial", "16", "bold"),
+                                    fg="#FFFFFF", bg="#0057D8", text="Play", width=10,
+                                    command=self.check_rounds)
+        self.play_button.grid(row=0, column=1, padx=20, pady=20)
 
 
-    def check_rounds(self, clue_input):
+    def check_rounds(self):
         """
-        Checks users have entered 1 or more rounds or have clues enabled or disabled.
+        Checks users have entered 1 or more rounds
         """
-
-        # Check if the user wants clues enabled or disabled
-        if clue_input == c.CLUES_OFF:
-            clue_output = 0
-        else:
-            clue_output = 1
 
         # Retrieve number of rounds the user wants to play
         rounds_wanted = self.num_rounds_entry.get()
-
-        # Retrieve if the user wanted to play with or without clues
 
         # Reset label and entry box (for when users come to home screen)
         self.choose_label.config(fg="#009900", font=("Arial", "12", "bold"))
@@ -148,13 +128,12 @@ class StartGame:
         try:
             rounds_wanted = int(rounds_wanted)
             if rounds_wanted > 0:
-                # Clear entry box and reset instruction label so that when users play a new game,
-                # they don't see an error message
+                # Clear entry box and reset instruction label so that when users play a new game, they don't see an error message
                 self.num_rounds_entry.delete(0, END)
                 self.choose_label.config(text="How many rounds do you want to play?")
                 
-                # Invoke Play Class (and take across number of rounds and the clue output)
-                Play(self, clue_output, rounds_wanted)
+                # Invoke Play Class (and take across number of rounds)
+                Play(rounds_wanted)
                 # Hide root window (ie: hide rounds choice window)
                 root.withdraw()
 
@@ -177,9 +156,9 @@ class Play:
     Interface for playing the Conections Game
     """
 
-    def __init__(self, partner, all_clues_info, how_many):
+    def __init__(self, how_many):
 
-        # Rounds played - start with 0, rounds wanted - based of check rounds, Rounds won variable defined
+        # Rounds played - start with 0
         self.rounds_played = IntVar()
         self.rounds_played.set(0)
 
@@ -194,14 +173,9 @@ class Play:
         self.round_answer_list = []
         self.round_clue_list = []
 
-        # Score lists and combo variables
+        # Score lists
         self.all_scores_list = []
         self.all_high_score_list = []
-        self.combo = 0
-        self.highest_combo = 0
-
-        # Extract if the user wanted clues on or off
-        self.clues_on = all_clues_info
 
         self.play_box = Toplevel()
 
@@ -274,7 +248,7 @@ class Play:
 
             control_ref_list.append(make_control_button)
 
-        # Retrieve next round, stats, and end button so that they can be configured later
+        # Retrieve next round, stats, and end button so that they can be configured later.
         self.next_button = control_ref_list[0]
         self.hints_button = control_ref_list[1]
         self.stats_button = control_ref_list[2]
@@ -301,8 +275,8 @@ class Play:
         rounds_wanted = self.rounds_wanted.get()
 
         # Create basic scoring method and append to high score list
-        score = 10
-        self.all_high_score_list.append(score)
+        highest = 10
+        self.all_high_score_list.append(highest)
 
         # get round lists 
         self.round_before_after_list, self.round_words_list, self.round_answer_list, self.round_clue_list = get_round_results()
@@ -347,23 +321,9 @@ class Play:
             round_clue = self.round_clue_list[3]
             round_before_after = self.round_before_after_list[3]
 
-        # Update heading, Hide results label. Connections label will contain clues depending on if the user wanted clues enabled.
+        # Update heading, give the user their connections and clues, Hide results label
         self.heading_label.config(text=f"Round {rounds_played + 1} of {rounds_wanted}")
-
-        if self.clues_on == 1:
-            self.connection_label.config(text=f"What goes {round_before_after} these connections: {word1}, {word2}, {word3}, {word4}. Clue: {round_clue}")
-            if round_before_after == "before":
-                self.connection_label.config(bg="#06D6A0")
-            elif round_before_after == "after":
-                self.connection_label.config(bg="#118AB2")
-        
-        elif self.clues_on == 0:
-            self.connection_label.config(text=f"What matches these connections: {word1}, {word2}, {word3}, {word4}. (Clues disabled)")
-            self.connection_label.config(bg="#D5E8D4")
-        else:
-            self.connection_label.config(text="Error")
-        
-        
+        self.connection_label.config(text=f"Choose the correct answer below which is placed {round_before_after} these connections: {word1}, {word2}, {word3}, {word4}. Clue: {round_clue}")
         self.results_label.config(text=f"{'=' * 7}", bg="#F0F0F0")
 
         # Configure buttons using text answers from list
@@ -376,7 +336,7 @@ class Play:
     def round_results(self, user_choice):
         """
         Retrieves which answer button was pushed (index 0 - 4), retrieves the correct answer
-        and then compares that with the answer button that the user clicks, updates results.
+        and then compares it with the answer button that the user clicks, updates results.
         """
 
         # Enable stats button after at least one round has been played
@@ -391,24 +351,21 @@ class Play:
         answer_name = self.answer_button_ref[user_choice].cget('text')
 
         if answer_name == self.correct_answer:
-            result_text = f"Success! {answer_name} is correct, and earned you 10 points and has increased your combo"
+            result_text = f"Success! {answer_name} is correct, and earned you 10 points"
             result_bg = "#82B366"
             self.all_scores_list.append(10)
 
             rounds_won = self.rounds_won.get()
             rounds_won += 1
             self.rounds_won.set(rounds_won)
-            self.combo += 1
-
-            if self.combo > self.highest_combo:
-                self.highest_combo += 1
+            # self.combo += 1
             
 
         else:
-            result_text = f"Oops! {answer_name} is incorrect, and earned you no points. The correct answer was {self.correct_answer}. You have lost your combo streak."
+            result_text = f"Oops! {answer_name} is incorrect, and earned you no points. The correct answer was {self.correct_answer}"
             result_bg = "#F8CECC"
             self.all_scores_list.append(0)
-            self.combo = 0
+            # self.combo = 0
 
 
         self.results_label.config(text=result_text, bg=result_bg)
@@ -452,7 +409,8 @@ class Play:
         # IMPORTANT: retrieve number of rounds
         # won as a number (rather than the 'self' container)
         rounds_won = self.rounds_won.get()
-        stats_bundle = [rounds_won, self.highest_combo, self.all_scores_list, self.all_high_score_list]
+        # highest_combo = self.highest_combo.get()
+        stats_bundle = [rounds_won, self.all_scores_list, self.all_high_score_list]
 
         Stats(self, stats_bundle)
         
@@ -531,9 +489,9 @@ class Stats:
         
         # Extract information from master list
         rounds_won = all_stats_info[0]
-        highest_combo = all_stats_info[1]
-        user_scores = all_stats_info[2]
-        high_scores = all_stats_info[3]
+        # highest_combo = all_stats_info[1]
+        user_scores = all_stats_info[1]
+        high_scores = all_stats_info[2]
 
         # Sort user scores to find high score
         user_scores.sort()
@@ -571,7 +529,7 @@ class Stats:
 
         # Custom comment text and formatting for score
         if total_score == max_possible:
-            comment_string = ("Amazing! You got the highest possible score and combo")
+            comment_string = ("Amazing! You got the highest possible score")
             comment_colour = "#D5E8D4"
 
         elif total_score == 0:
@@ -584,7 +542,7 @@ class Stats:
             comment_colour = "#F0F0F0"
 
         average_score_string = f"Average score: {average_score:.0f}"
-        highest_combo_string = f"Highest combo: {highest_combo}\n"
+        # highest_combo_string = f"Highest combo: {highest_combo}\n"
 
 
         heading_font = ("Arial", "16", "bold")
@@ -600,8 +558,7 @@ class Stats:
             [comment_string, comment_font, "W"],
             ["\nRound Stats", heading_font, ""],
             [best_score_string, normal_font, "W"],
-            [average_score_string, normal_font, "W"],
-            [highest_combo_string, normal_font, "W"]
+            [average_score_string, normal_font, "W"]
         ]
 
         stats_label_ref_list = []
